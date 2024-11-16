@@ -1,3 +1,5 @@
+#include "get_next_line.h"
+
 char *troncate_storage(char **storage, int i)
 {
     char *result;
