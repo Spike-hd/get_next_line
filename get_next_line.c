@@ -12,103 +12,88 @@
 
 #include "get_next_line.h"
 
-char	*truncate_storage(char **storage, int i)
+char *read_and_store(int fd, int *nb_read, char *storage, char *buffer)
 {
-	char	*result;
-	char	*new_storage;
-	int		storage_len;
+    char    *new_storage;
 
-	if (!storage || !*storage || i < 0)
-		return (NULL);
-	storage_len = ft_strlen(*storage);
-	result = ft_substr(*storage, 0, i);
-	if (!result)
-		return (NULL);
-	new_storage = ft_substr(*storage, i, storage_len - i);
-	if (!new_storage)
-	{
-		free(result);
-		return (NULL);
-	}
-	free(*storage);
-	*storage = new_storage;
-	return (result);
+    new_storage = NULL;
+    *nb_read = read(fd, buffer, BUFFER_SIZE);
+    if (*nb_read == -1)
+        return (NULL);
+    if (*nb_read == 0)
+        return (storage);
+
+    buffer[*nb_read] = '\0';
+    if (!storage)
+        return (ft_strdup(buffer));
+    new_storage = ft_strjoin(storage, buffer);
+    free(storage);
+    return (new_storage);
 }
 
-int	parse_storage(char *storage)
+char    *extract_line(char **storage, int nb_read)
 {
-	int	i;
+    char    *line;
+    char    *new_storage;
+    int     i;
 
-	i = 0;
-	if (!storage)
-		return (0);
-	while (storage[i])
-	{
-		if (storage[i] == '\n')
-			return (i);
-		i++;
-	}
-	return (0);
+    if (!*storage)
+        return (NULL);
+    i = 0;
+    while ((*storage)[i] && (*storage)[i] != '\n')
+        i++;
+    if ((*storage)[i] == '\n')
+    {
+        line = ft_substr(*storage, 0, i + 1);
+        new_storage = ft_strdup(*storage + i + 1);
+        free(*storage);
+        *storage = new_storage;
+        return (line);
+    }
+    if (nb_read == 0) 
+    {
+        line = ft_strdup(*storage);  
+        free(*storage);  
+        *storage = NULL;  
+        return (line);  
+    }
+    return (NULL);
 }
 
-char	*increase_storage(char *buffer, char *storage, int i)
+char *free_storage(char **storage)
 {
-	char	*bigger_storage;
-	int		total_size;
-
-	total_size = i + ft_strlen(storage);
-	bigger_storage = (char *)malloc(total_size + 1);
-	if (!bigger_storage)
-		return (NULL);
-	if (storage)
-	{
-		ft_strlcpy(bigger_storage, storage, total_size + 1);
-		free(storage);
-	}
-	else
-		bigger_storage[0] = '\0';
-	ft_strlcat(bigger_storage, buffer, total_size + 1);
-	return (bigger_storage);
+    if (*storage)
+    {
+        free(*storage);
+        storage = NULL;
+    }
+    return (NULL);
 }
 
-int	parse_buffer(char *buffer, char **storage, int nb_read)
+char    *get_next_line(int fd)
 {
-	if (!buffer || nb_read <= 0)
-		return (0);
-	*storage = increase_storage(buffer, *storage, nb_read);
-	if (!*storage)
-		return (0);
-	return (parse_storage(*storage));
-}
+    static char    *storage = NULL;
+    char    *buffer;
+    char    *line;
+    int     nb_read;
 
-char	*get_next_line(int fd)
-{
-	char		buffer[BUFFER_SIZE];
-	static char	*storage = NULL;
-	int			nb_read;
-	int			i;
+    if (fd < 0 || BUFFER_SIZE <= 0)
+        return (NULL);
 
-	nb_read = -1;
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (0);
-	while (nb_read)
-	{
-		nb_read = read(fd, buffer, BUFFER_SIZE);
-		if (nb_read == -1)
-		{
-			free (storage);
-			return (NULL);
-		}
-		i = parse_buffer(buffer, &storage, nb_read);
-		if (i == 0 && nb_read == 0)
-		{
-			free(storage);
-			storage = NULL;
-			return (NULL);
-		}
-		if (i)
-			return (truncate_storage(&storage, i));
-	}
-	free (storage);
-	return (NULL);
+    while (1)
+    {
+        buffer = (char *)malloc(BUFFER_SIZE + 1);
+        if (!buffer)
+            return (free_storage(&storage));
+        storage = read_and_store(fd, &nb_read, storage, buffer);
+        free(buffer);
+        if (!storage)
+            return (free_storage(&storage));
+
+        line = extract_line(&storage, nb_read);
+        if (line)
+            return (line);
+        if (nb_read == 0)
+            return (free_storage(&storage));
+    }
 }

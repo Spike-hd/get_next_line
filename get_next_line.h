@@ -23,12 +23,7 @@
 size_t	ft_strlen(const char *str);
 char	*ft_strdup(const char *src);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
-size_t	ft_strlcpy(char *dst, const char *src, size_t size);
-size_t	ft_strlcat(char *dst, const char *src, size_t size);
-char	*troncate_storage(char **storage, int i);
-int		parse_storage(char *storage);
-char	*increase_storage(char *buffer, char *storage, int i);
-int		parse_buffer(char *buffer, char **storage, int nb_read);
+char	*ft_strjoin(char const *s1, char const *s2);
 char	*get_next_line(int fd);
 
 #endif
