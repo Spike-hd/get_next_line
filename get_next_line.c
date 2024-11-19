@@ -6,11 +6,21 @@
 /*   By: spike <spike@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 11:53:17 by hduflos           #+#    #+#             */
-/*   Updated: 2024/11/18 23:45:17 by spike            ###   ########.fr       */
+/*   Updated: 2024/11/19 11:25:41 by spike            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+
+char	*free_storage(char **storage)
+{
+	if (*storage)
+	{
+		free(*storage);
+		*storage = NULL;
+	}
+	return (NULL);
+}
 
 char	*read_and_store(int fd, int *nb_read, char *storage, char *buffer)
 {
@@ -19,7 +29,7 @@ char	*read_and_store(int fd, int *nb_read, char *storage, char *buffer)
 	new_storage = NULL;
 	*nb_read = read(fd, buffer, BUFFER_SIZE);
 	if (*nb_read == -1)
-		return (NULL);
+		return (free_storage(&storage));
 	if (*nb_read == 0)
 		return (storage);
 
@@ -28,6 +38,7 @@ char	*read_and_store(int fd, int *nb_read, char *storage, char *buffer)
 		return (ft_strdup(buffer));
 	new_storage = ft_strjoin(storage, buffer);
 	free(storage);
+	storage = NULL;
 	return (new_storage);
 }
 
@@ -37,7 +48,7 @@ char	*extract_line(char **storage, int nb_read)
 	char	*new_storage;
 	int		i;
 
-	if (!*storage)
+	if (!*storage || **storage == '\0')
 		return (NULL);
 	i = 0;
 	while ((*storage)[i] && (*storage)[i] != '\n')
@@ -60,16 +71,6 @@ char	*extract_line(char **storage, int nb_read)
 	return (NULL);
 }
 
-char	*free_storage(char **storage)
-{
-	if (*storage)
-	{
-		free(*storage);
-		storage = NULL;
-	}
-	return (NULL);
-}
-
 char	*get_next_line(int fd)
 {
 	static char	*storage = NULL;
@@ -87,8 +88,8 @@ char	*get_next_line(int fd)
 			return (free_storage(&storage));
 		storage = read_and_store(fd, &nb_read, storage, buffer);
 		free(buffer);
-		if (!storage)
-			return (free_storage(&storage));
+		if (!storage && nb_read != 0)
+			return (NULL);
 
 		line = extract_line(&storage, nb_read);
 		if (line)

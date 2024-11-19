@@ -6,7 +6,7 @@
 /*   By: spike <spike@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 11:52:52 by hduflos           #+#    #+#             */
-/*   Updated: 2024/11/18 23:45:36 by spike            ###   ########.fr       */
+/*   Updated: 2024/11/19 11:21:57 by spike            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,11 @@
 
 size_t	ft_strlen(const char *str)
 {
-	int	i;
+	size_t	i;
 
 	i = 0;
+	if (!str)
+		return (0);
 	while (str[i])
 		i++;
 	return (i);
@@ -48,8 +50,12 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	char	*res;
 	int		total_size;
 
-	if (!s1 || !s2)
+	if (!s1 && !s2)
 		return (NULL);
+	if (!s1)
+		return (ft_strdup(s2));
+	if (!s2)
+		return (ft_strdup(s1));
 	total_size = ft_strlen(s1) + ft_strlen(s2);
 	res = (char *)malloc(total_size + 1);
 	if (!res)
