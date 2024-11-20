@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: spike <spike@student.42.fr>                +#+  +:+       +#+        */
+/*   By: hduflos <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/17 11:53:17 by hduflos           #+#    #+#             */
-/*   Updated: 2024/11/20 14:21:02 by hduflos          ###   ########.fr       */
+/*   Created: 2024/11/20 14:34:51 by hduflos           #+#    #+#             */
+/*   Updated: 2024/11/20 14:39:31 by hduflos          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 char	*free_storage(char **storage)
 {
@@ -72,7 +72,7 @@ char	*extract_line(char **storage, int nb_read)
 
 char	*get_next_line(int fd)
 {
-	static char	*storage = NULL;
+	static char	*storage[1024];
 	char		*buffer;
 	char		*line;
 	int			nb_read;
@@ -83,15 +83,15 @@ char	*get_next_line(int fd)
 	{
 		buffer = (char *)malloc(BUFFER_SIZE + 1);
 		if (!buffer)
-			return (free_storage(&storage));
-		storage = read_and_store(fd, &nb_read, storage, buffer);
+			return (free_storage(&storage[fd]));
+		storage[fd] = read_and_store(fd, &nb_read, storage[fd], buffer);
 		free(buffer);
-		if (!storage && nb_read != 0)
+		if (!storage[fd] && nb_read != 0)
 			return (NULL);
-		line = extract_line(&storage, nb_read);
+		line = extract_line(&storage[fd], nb_read);
 		if (line)
 			return (line);
 		if (nb_read == 0)
-			return (free_storage(&storage));
+			return (free_storage(&storage[fd]));
 	}
 }
